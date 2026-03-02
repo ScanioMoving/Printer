@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Barlow", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+
+#print-root {
+  display: none;
+}
+
+.print-label {
+  background: #ffffff;
+  color: #000000;
+  border: 0.04in solid #000000;
+  width: 4in;
+  height: 3in;
+  padding: 0.16in 0.18in;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.12in;
+}
+
+.print-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 0.08in;
+}
+
+.print-field {
+  font-weight: 800;
+  line-height: 1;
+  color: #000000;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.print-field-1 {
+  font-size: 0.46in;
+}
+
+.print-field-2,
+.print-field-3 {
+  font-size: 0.29in;
+}
+
+.print-field-4 {
+  font-size: 0.4in;
+  border-top: 0.03in solid #000000;
+  padding-top: 0.08in;
+}
+
+@media print {
+  @page {
+    size: 4in 3in;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #print-root,
+  #print-root * {
+    visibility: visible;
+  }
+
+  #print-root {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  #print-root .print-page {
+    width: 4in;
+    height: 3in;
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  #print-root .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .print-label {
+    border-color: #000000;
+    color: #000000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
