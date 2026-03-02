@@ -28,6 +28,46 @@ function parseWholeNumber(value: string): number | null {
   return numberValue;
 }
 
+function getDigitCount(value: number): number {
+  return Math.abs(value).toString().length;
+}
+
+function getPreviewNumberSizeClass(value: number): string {
+  const digits = getDigitCount(value);
+
+  if (digits <= 4) {
+    return "text-6xl";
+  }
+
+  if (digits <= 6) {
+    return "text-5xl";
+  }
+
+  if (digits <= 8) {
+    return "text-4xl";
+  }
+
+  return "text-3xl";
+}
+
+function getPrintNumberSizeClass(value: number): string {
+  const digits = getDigitCount(value);
+
+  if (digits <= 4) {
+    return "";
+  }
+
+  if (digits <= 6) {
+    return "print-number-medium";
+  }
+
+  if (digits <= 8) {
+    return "print-number-small";
+  }
+
+  return "print-number-xsmall";
+}
+
 export default function HomePage() {
   const [company, setCompany] = useState<Company>("Scanio");
   const [projectName, setProjectName] = useState("");
@@ -172,6 +212,7 @@ export default function HomePage() {
       : generatedNumbers.length > 0
         ? generatedNumbers[0]
         : parseWholeNumber(startNumber) ?? 12352;
+  const previewNumberSizeClass = getPreviewNumberSizeClass(sampleNumber);
 
   return (
     <>
@@ -286,7 +327,9 @@ export default function HomePage() {
                       {projectAddress.trim() || "Project Address"}
                     </p>
                     <div className="mt-4 text-center">
-                      <p className="text-6xl font-black leading-none tracking-wide">#{sampleNumber}</p>
+                      <p className={`${previewNumberSizeClass} font-black leading-none tracking-wide`}>
+                        #{sampleNumber}
+                      </p>
                     </div>
                   </div>
                 </section>
@@ -372,7 +415,7 @@ export default function HomePage() {
               <p className="print-project">{label.projectName}</p>
               <p className="print-address">{label.projectAddress}</p>
               <div className="print-number-wrap">
-                <p className="print-number">#{label.number}</p>
+                <p className={`print-number ${getPrintNumberSizeClass(label.number)}`}>#{label.number}</p>
               </div>
             </article>
           </div>

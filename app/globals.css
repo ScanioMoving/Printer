@@ -78,6 +78,18 @@ body {
   letter-spacing: 0.01in;
 }
 
+.print-number-medium {
+  font-size: 0.78in;
+}
+
+.print-number-small {
+  font-size: 0.64in;
+}
+
+.print-number-xsmall {
+  font-size: 0.5in;
+}
+
 @media print {
   @page {
     size: 4in 3in;
