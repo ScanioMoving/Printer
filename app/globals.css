@@ -28,48 +28,55 @@ body {
   height: 3in;
   box-sizing: border-box;
   border: 0.03in solid #000000;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  padding: 0.14in 0.18in;
   background: #ffffff;
   color: #000000;
-}
-
-.print-cell {
-  padding: 0.14in;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0.07in;
-  justify-content: flex-start;
-  overflow: hidden;
+  gap: 0.06in;
 }
 
-.print-cell-left {
-  border-right: 0.03in solid #000000;
-}
-
-.print-cell-top {
-  border-bottom: 0.03in solid #000000;
-}
-
-.print-cell-title {
+.print-company {
   margin: 0;
-  font-size: 0.14in;
-  font-weight: 900;
-  letter-spacing: 0.02in;
-  line-height: 1;
-  color: #000000;
-}
-
-.print-cell-value {
-  margin: 0;
-  font-size: 0.33in;
+  font-size: 0.42in;
   font-weight: 900;
   line-height: 0.95;
-  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.01in;
+}
+
+.print-project {
+  margin: 0;
+  font-size: 0.24in;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.print-address {
+  margin: 0;
+  font-size: 0.2in;
+  font-weight: 700;
+  line-height: 1.08;
+  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.print-number-wrap {
+  margin-top: auto;
+  border-top: 0.03in solid #000000;
+  padding-top: 0.08in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.print-number {
+  margin: 0;
+  font-size: 0.95in;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.01in;
 }
 
 @media print {
@@ -116,9 +123,10 @@ body {
   }
 
   .print-label,
-  .print-cell,
-  .print-cell-title,
-  .print-cell-value {
+  .print-company,
+  .print-project,
+  .print-address,
+  .print-number {
     color: #000000;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;

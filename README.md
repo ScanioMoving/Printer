@@ -1,14 +1,25 @@
-# Warehouse Label Printer (Next.js + App Router)
+# Warehouse Label Batch Printer (Next.js + App Router)
 
 Simple single-user browser app for printing **4in x 3in** warehouse labels to a Zebra ZD621 using `window.print()`.
 
+## Label Format
+
+Each label prints as:
+
+- Company (`Scanio` or `Montia`)
+- Project Name
+- Project Address
+- Large bold number at the bottom
+
 ## Features
 
-- Single label print mode (Designer, Project #, Item, Inventory #)
-- Batch queue mode (manual add)
-- CSV import (4 columns) for batch queue
-- Edit/delete queue rows before printing
-- Select specific queue labels and print **selected only**
+- Company selector buttons (`Scanio` / `Montia`)
+- Project Name field
+- Project Address field
+- Start Number + End Number batch generation
+- Auto-generate full inclusive range (e.g. `1250` to `1260`)
+- Select specific numbers before printing
+- Print selected or print all generated
 - Print-only layout with exact **4in x 3in** labels, one per page
 - `@media print` hides UI and prints only labels
 
@@ -29,26 +40,16 @@ Open http://localhost:3000.
 
 ## Print setup
 
-1. Fill fields or queue labels.
-2. Click `Print Label`, `Print Selected`, or `Print All`.
-3. In browser print dialog:
+1. Pick company and fill project fields.
+2. Enter Start Number and End Number.
+3. Click `Generate Range`.
+4. Select/unselect specific numbers if needed.
+5. Click `Print Selected` or `Print All Generated`.
+6. In browser print dialog:
 - Select Zebra ZD621 printer
 - Paper/label size: **4in x 3in**
 - Margins: **None / 0**
 - Scale: **100%**
-
-## CSV format
-
-- 4 columns in this order: `Designer, Project #, Item, Inventory #`
-- Optional header row is supported.
-
-Example:
-
-```csv
-Designer,Project #,Item,Inventory #
-Jane Smith,PRJ-4421,Side Table,INV-0087
-Ben Carter,PRJ-4472,Desk Lamp,INV-0119
-```
 
 ## Deploy to Vercel (free tier)
 
