@@ -16,8 +16,8 @@ Each label prints as:
 - Company selector buttons (`Scanio` / `Montia`)
 - Project Name field
 - Project Address field
-- Start Number + End Number batch generation
-- Auto-generate full inclusive range (e.g. `1250` to `1260`)
+- Start Number + Label Count batch generation
+- Auto-generate incremental labels (e.g. start `1250`, count `11` -> `1250` to `1260`)
 - Select specific numbers before printing
 - Print selected or print all generated
 - Print-only layout with exact **4in x 3in** labels, one per page
@@ -41,8 +41,8 @@ Open http://localhost:3000.
 ## Print setup
 
 1. Pick company and fill project fields.
-2. Enter Start Number and End Number.
-3. Click `Generate Range`.
+2. Enter Start Number and Label Count.
+3. Click `Generate Labels`.
 4. Select/unselect specific numbers if needed.
 5. Click `Print Selected` or `Print All Generated`.
 6. In browser print dialog:

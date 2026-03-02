@@ -33,7 +33,7 @@ export default function HomePage() {
   const [projectName, setProjectName] = useState("");
   const [projectAddress, setProjectAddress] = useState("");
   const [startNumber, setStartNumber] = useState("");
-  const [endNumber, setEndNumber] = useState("");
+  const [labelCount, setLabelCount] = useState("");
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [status, setStatus] = useState("");
@@ -75,22 +75,20 @@ export default function HomePage() {
     }
 
     const start = parseWholeNumber(startNumber);
-    const end = parseWholeNumber(endNumber);
+    const count = parseWholeNumber(labelCount);
 
-    if (start === null || end === null) {
-      setStatus("Start Number and End Number must be whole numbers.");
+    if (start === null || count === null) {
+      setStatus("Start Number and Label Count must be whole numbers.");
       return;
     }
 
-    if (end < start) {
-      setStatus("End Number must be greater than or equal to Start Number.");
+    if (count <= 0) {
+      setStatus("Label Count must be greater than 0.");
       return;
     }
-
-    const count = end - start + 1;
 
     if (count > MAX_LABELS_PER_BATCH) {
-      setStatus(`Range is too large. Maximum batch size is ${MAX_LABELS_PER_BATCH} labels.`);
+      setStatus(`Label Count is too large. Maximum batch size is ${MAX_LABELS_PER_BATCH} labels.`);
       return;
     }
 
@@ -152,7 +150,7 @@ export default function HomePage() {
     }
 
     if (generatedNumbers.length === 0) {
-      setStatus("Generate a range first before printing all labels.");
+      setStatus("Generate labels first before printing all labels.");
       return;
     }
 
@@ -240,11 +238,11 @@ export default function HomePage() {
                     />
                   </label>
                   <label className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
-                    <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">End Number</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">Label Count</span>
                     <input
                       className="h-12 rounded-lg border border-slate-300 px-3 text-lg font-semibold text-ink outline-none transition focus:border-slate-600"
-                      value={endNumber}
-                      onChange={(event) => setEndNumber(event.target.value)}
+                      value={labelCount}
+                      onChange={(event) => setLabelCount(event.target.value)}
                       inputMode="numeric"
                       autoComplete="off"
                     />
@@ -257,7 +255,7 @@ export default function HomePage() {
                     onClick={generateBatch}
                     className="h-12 rounded-xl bg-ink px-6 text-base font-extrabold text-white shadow-sm transition hover:bg-slate-800"
                   >
-                    Generate Range
+                    Generate Labels
                   </button>
                   <button
                     type="button"
@@ -287,8 +285,8 @@ export default function HomePage() {
                     <p className="mt-1 whitespace-pre-wrap text-lg font-bold leading-tight text-slate-800">
                       {projectAddress.trim() || "Project Address"}
                     </p>
-                    <div className="mt-4 border-t-2 border-slate-900 pt-3 text-center">
-                      <p className="text-6xl font-black leading-none tracking-wide">{sampleNumber}</p>
+                    <div className="mt-4 text-center">
+                      <p className="text-6xl font-black leading-none tracking-wide">#{sampleNumber}</p>
                     </div>
                   </div>
                 </section>
@@ -323,7 +321,7 @@ export default function HomePage() {
 
                   {generatedNumbers.length === 0 ? (
                     <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-sm font-semibold text-steel">
-                      Generate a range to select individual numbers for printing.
+                      Generate labels to select individual numbers for printing.
                     </p>
                   ) : (
                     <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-300 bg-slate-50 p-3">
@@ -346,7 +344,7 @@ export default function HomePage() {
                                 onChange={() => toggleNumberSelection(numberValue)}
                                 className="h-4 w-4 rounded border-slate-400"
                               />
-                              <span>{numberValue}</span>
+                              <span>#{numberValue}</span>
                             </label>
                           );
                         })}
@@ -374,7 +372,7 @@ export default function HomePage() {
               <p className="print-project">{label.projectName}</p>
               <p className="print-address">{label.projectAddress}</p>
               <div className="print-number-wrap">
-                <p className="print-number">{label.number}</p>
+                <p className="print-number">#{label.number}</p>
               </div>
             </article>
           </div>

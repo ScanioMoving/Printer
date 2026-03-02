@@ -64,8 +64,7 @@ body {
 
 .print-number-wrap {
   margin-top: auto;
-  border-top: 0.03in solid #000000;
-  padding-top: 0.08in;
+  padding-top: 0.04in;
   display: flex;
   align-items: center;
   justify-content: center;
