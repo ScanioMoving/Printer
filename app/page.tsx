@@ -3,10 +3,10 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
 type LabelForm = {
-  field1: string;
-  field2: string;
-  field3: string;
-  field4: string;
+  designer: string;
+  projectNumber: string;
+  item: string;
+  inventoryNumber: string;
 };
 
 type QueueLabel = LabelForm & {
@@ -15,11 +15,24 @@ type QueueLabel = LabelForm & {
 
 type Mode = "single" | "batch";
 
+type FieldConfig = {
+  key: keyof LabelForm;
+  inputLabel: string;
+  printLabel: string;
+};
+
+const FIELD_CONFIG: FieldConfig[] = [
+  { key: "designer", inputLabel: "Designer", printLabel: "DESIGNER" },
+  { key: "projectNumber", inputLabel: "Project #", printLabel: "PROJECT #" },
+  { key: "item", inputLabel: "Item", printLabel: "ITEM" },
+  { key: "inventoryNumber", inputLabel: "Inventory #", printLabel: "INVENTORY #" }
+];
+
 const EMPTY_FORM: LabelForm = {
-  field1: "",
-  field2: "",
-  field3: "",
-  field4: ""
+  designer: "",
+  projectNumber: "",
+  item: "",
+  inventoryNumber: ""
 };
 
 function isValidLabel(label: LabelForm): boolean {
@@ -28,13 +41,14 @@ function isValidLabel(label: LabelForm): boolean {
 
 function buildQueueLabel(label: LabelForm): QueueLabel {
   return {
-    id: typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    field1: label.field1.trim(),
-    field2: label.field2.trim(),
-    field3: label.field3.trim(),
-    field4: label.field4.trim()
+    id:
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    designer: label.designer.trim(),
+    projectNumber: label.projectNumber.trim(),
+    item: label.item.trim(),
+    inventoryNumber: label.inventoryNumber.trim()
   };
 }
 
@@ -69,6 +83,26 @@ function parseCsvLine(line: string): string[] {
   return cells;
 }
 
+function normalizeCsvHeader(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function looksLikeHeaderRow(row: string[]): boolean {
+  if (row.length < 4) {
+    return false;
+  }
+
+  const normalized = row.slice(0, 4).map(normalizeCsvHeader);
+  const aliasSets = [
+    ["designer", "field1"],
+    ["project", "projectnumber", "projectnum", "field2"],
+    ["item", "field3"],
+    ["inventory", "inventorynumber", "inventorynum", "field4"]
+  ];
+
+  return aliasSets.every((aliases, index) => aliases.some((alias) => normalized[index].includes(alias)));
+}
+
 function parseCsv(text: string): LabelForm[] {
   const lines = text
     .split(/\r?\n/)
@@ -80,17 +114,7 @@ function parseCsv(text: string): LabelForm[] {
   }
 
   const parsed = lines.map(parseCsvLine);
-
-  let startIndex = 0;
-  const firstLine = parsed[0].map((cell) => cell.toLowerCase());
-  const looksLikeHeader =
-    firstLine.length >= 4 &&
-    firstLine.slice(0, 4).every((cell) => cell.includes("field"));
-
-  if (looksLikeHeader) {
-    startIndex = 1;
-  }
-
+  const startIndex = looksLikeHeaderRow(parsed[0]) ? 1 : 0;
   const labels: LabelForm[] = [];
 
   for (let i = startIndex; i < parsed.length; i += 1) {
@@ -101,10 +125,10 @@ function parseCsv(text: string): LabelForm[] {
     }
 
     const label: LabelForm = {
-      field1: row[0].trim(),
-      field2: row[1].trim(),
-      field3: row[2].trim(),
-      field4: row[3].trim()
+      designer: row[0].trim(),
+      projectNumber: row[1].trim(),
+      item: row[2].trim(),
+      inventoryNumber: row[3].trim()
     };
 
     if (!isValidLabel(label)) {
@@ -128,33 +152,50 @@ function FieldInputs({
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {[1, 2, 3, 4].map((fieldNumber) => {
-        const key = `field${fieldNumber}` as keyof LabelForm;
+      {FIELD_CONFIG.map(({ key, inputLabel }) => (
+        <label
+          key={key}
+          className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm"
+          htmlFor={`${idPrefix}-${key}`}
+        >
+          <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">{inputLabel}</span>
+          <input
+            id={`${idPrefix}-${key}`}
+            className="h-12 rounded-lg border border-slate-300 px-3 text-lg font-semibold text-ink outline-none transition focus:border-slate-600"
+            value={value[key]}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                [key]: event.target.value
+              })
+            }
+            autoComplete="off"
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
 
-        return (
-          <label
-            key={key}
-            className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm"
-            htmlFor={`${idPrefix}-${key}`}
-          >
-            <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-              Field {fieldNumber}
-            </span>
-            <input
-              id={`${idPrefix}-${key}`}
-              className="h-12 rounded-lg border border-slate-300 px-3 text-lg font-semibold text-ink outline-none transition focus:border-slate-600"
-              value={value[key]}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  [key]: event.target.value
-                })
-              }
-              autoComplete="off"
-            />
-          </label>
-        );
-      })}
+function LabelPreview({ label }: { label: LabelForm }) {
+  return (
+    <div className="grid overflow-hidden rounded-lg border-2 border-slate-900 md:grid-cols-2">
+      <div className="border-b-2 border-r-0 border-slate-900 p-3 md:border-b-2 md:border-r-2">
+        <p className="text-xs font-extrabold tracking-wider text-slate-600">DESIGNER</p>
+        <p className="text-xl font-black text-ink">{label.designer}</p>
+      </div>
+      <div className="border-b-2 border-slate-900 p-3">
+        <p className="text-xs font-extrabold tracking-wider text-slate-600">PROJECT #</p>
+        <p className="text-xl font-black text-ink">{label.projectNumber}</p>
+      </div>
+      <div className="border-r-0 border-slate-900 p-3 md:border-r-2">
+        <p className="text-xs font-extrabold tracking-wider text-slate-600">ITEM</p>
+        <p className="text-xl font-black text-ink">{label.item}</p>
+      </div>
+      <div className="p-3">
+        <p className="text-xs font-extrabold tracking-wider text-slate-600">INVENTORY #</p>
+        <p className="text-xl font-black text-ink">{label.inventoryNumber}</p>
+      </div>
     </div>
   );
 }
@@ -164,6 +205,7 @@ export default function HomePage() {
   const [singleLabel, setSingleLabel] = useState<LabelForm>(EMPTY_FORM);
   const [batchForm, setBatchForm] = useState<LabelForm>(EMPTY_FORM);
   const [queue, setQueue] = useState<QueueLabel[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingForm, setEditingForm] = useState<LabelForm>(EMPTY_FORM);
   const [status, setStatus] = useState<string>("");
@@ -171,7 +213,15 @@ export default function HomePage() {
   const [printLabels, setPrintLabels] = useState<LabelForm[]>([]);
   const [pendingPrint, setPendingPrint] = useState(false);
 
-  const queueCount = useMemo(() => queue.length, [queue.length]);
+  const queueCount = queue.length;
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const queueIds = new Set(queue.map((item) => item.id));
+      const filtered = prev.filter((id) => queueIds.has(id));
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [queue]);
 
   useEffect(() => {
     if (!pendingPrint) {
@@ -195,6 +245,13 @@ export default function HomePage() {
     return () => window.removeEventListener("afterprint", handleAfterPrint);
   }, []);
 
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  const selectedCount = useMemo(
+    () => queue.reduce((count, item) => (selectedSet.has(item.id) ? count + 1 : count), 0),
+    [queue, selectedSet]
+  );
+
   function startPrint(labels: LabelForm[]) {
     setPrintLabels(labels.map((label) => ({ ...label })));
     setPendingPrint(true);
@@ -216,9 +273,11 @@ export default function HomePage() {
       return;
     }
 
-    setQueue((prev) => [...prev, buildQueueLabel(batchForm)]);
+    const next = buildQueueLabel(batchForm);
+    setQueue((prev) => [...prev, next]);
+    setSelectedIds((prev) => [...prev, next.id]);
     setBatchForm(EMPTY_FORM);
-    setStatus("Label added to queue.");
+    setStatus("Label added to queue and selected for printing.");
   }
 
   async function importCsv(event: ChangeEvent<HTMLInputElement>) {
@@ -238,7 +297,9 @@ export default function HomePage() {
         return;
       }
 
-      setQueue((prev) => [...prev, ...parsed.map((label) => buildQueueLabel(label))]);
+      const imported = parsed.map((label) => buildQueueLabel(label));
+      setQueue((prev) => [...prev, ...imported]);
+      setSelectedIds((prev) => [...prev, ...imported.map((item) => item.id)]);
       setCsvStatus(`Imported ${parsed.length} label${parsed.length === 1 ? "" : "s"}.`);
       setStatus("");
     } catch (error) {
@@ -249,6 +310,8 @@ export default function HomePage() {
 
   function deleteFromQueue(id: string) {
     setQueue((prev) => prev.filter((item) => item.id !== id));
+    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
+
     if (editingId === id) {
       setEditingId(null);
       setEditingForm(EMPTY_FORM);
@@ -258,10 +321,10 @@ export default function HomePage() {
   function startEdit(item: QueueLabel) {
     setEditingId(item.id);
     setEditingForm({
-      field1: item.field1,
-      field2: item.field2,
-      field3: item.field3,
-      field4: item.field4
+      designer: item.designer,
+      projectNumber: item.projectNumber,
+      item: item.item,
+      inventoryNumber: item.inventoryNumber
     });
   }
 
@@ -272,16 +335,16 @@ export default function HomePage() {
     }
 
     setQueue((prev) =>
-      prev.map((item) =>
-        item.id === id
+      prev.map((queueItem) =>
+        queueItem.id === id
           ? {
-              ...item,
-              field1: editingForm.field1.trim(),
-              field2: editingForm.field2.trim(),
-              field3: editingForm.field3.trim(),
-              field4: editingForm.field4.trim()
+              ...queueItem,
+              designer: editingForm.designer.trim(),
+              projectNumber: editingForm.projectNumber.trim(),
+              item: editingForm.item.trim(),
+              inventoryNumber: editingForm.inventoryNumber.trim()
             }
-          : item
+          : queueItem
       )
     );
 
@@ -290,14 +353,52 @@ export default function HomePage() {
     setStatus("Queue item updated.");
   }
 
-  function printQueue() {
+  function toggleSelection(id: string) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((current) => current !== id) : [...prev, id]));
+  }
+
+  function selectAll() {
+    setSelectedIds(queue.map((item) => item.id));
+  }
+
+  function clearSelection() {
+    setSelectedIds([]);
+  }
+
+  function printSelectedQueue() {
+    const labelsToPrint = queue.filter((item) => selectedSet.has(item.id));
+
+    if (labelsToPrint.length === 0) {
+      setStatus("Select at least one label before printing.");
+      return;
+    }
+
+    setStatus("");
+    startPrint(
+      labelsToPrint.map(({ designer, projectNumber, item, inventoryNumber }) => ({
+        designer,
+        projectNumber,
+        item,
+        inventoryNumber
+      }))
+    );
+  }
+
+  function printAllQueue() {
     if (queue.length === 0) {
       setStatus("Add labels to the queue before batch printing.");
       return;
     }
 
     setStatus("");
-    startPrint(queue.map(({ field1, field2, field3, field4 }) => ({ field1, field2, field3, field4 })));
+    startPrint(
+      queue.map(({ designer, projectNumber, item, inventoryNumber }) => ({
+        designer,
+        projectNumber,
+        item,
+        inventoryNumber
+      }))
+    );
   }
 
   return (
@@ -305,11 +406,9 @@ export default function HomePage() {
       <main id="app-root" className="min-h-screen bg-paper px-4 py-6 text-ink md:px-8 md:py-10">
         <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
           <header className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-              Warehouse Label Printer
-            </h1>
+            <h1 className="text-3xl font-black tracking-tight md:text-4xl">Warehouse Label Printer</h1>
             <p className="mt-2 text-lg text-steel">
-              Print exactly 4in × 3in labels for Zebra ZD621 using the browser print dialog.
+              Prints in exact 4in × 3in format with a Zebra-friendly black and white layout.
             </p>
           </header>
 
@@ -348,7 +447,7 @@ export default function HomePage() {
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
               <div className="mb-4">
                 <h2 className="text-2xl font-extrabold">Single Label</h2>
-                <p className="text-steel">Fill in four fields and print one 4x3 label.</p>
+                <p className="text-steel">Fill Designer, Project #, Item, and Inventory #, then print one label.</p>
               </div>
 
               <FieldInputs value={singleLabel} onChange={setSingleLabel} idPrefix="single" />
@@ -380,7 +479,7 @@ export default function HomePage() {
               <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
                 <div className="mb-4">
                   <h2 className="text-2xl font-extrabold">Add Label To Queue</h2>
-                  <p className="text-steel">Enter a label manually or import rows from CSV.</p>
+                  <p className="text-steel">Add manually or import CSV. New rows are auto-selected for print.</p>
                 </div>
 
                 <FieldInputs value={batchForm} onChange={setBatchForm} idPrefix="batch" />
@@ -405,7 +504,7 @@ export default function HomePage() {
                 <div className="mt-6 rounded-xl border border-slate-300 bg-slate-50 p-4">
                   <h3 className="text-lg font-bold">CSV Import (4 columns)</h3>
                   <p className="text-sm text-steel">
-                    Upload a CSV where each row maps to Field 1, Field 2, Field 3, Field 4.
+                    CSV order: Designer, Project #, Item, Inventory #. Optional header row supported.
                   </p>
                   <input
                     type="file"
@@ -418,19 +517,48 @@ export default function HomePage() {
               </div>
 
               <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-4 flex flex-col gap-3">
                   <div>
                     <h2 className="text-2xl font-extrabold">Queue</h2>
-                    <p className="text-steel">{queueCount} label{queueCount === 1 ? "" : "s"} ready.</p>
+                    <p className="text-steel">
+                      {queueCount} label{queueCount === 1 ? "" : "s"} queued, {selectedCount} selected.
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={printQueue}
-                    className="h-14 rounded-xl bg-ink px-8 text-lg font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                    disabled={queue.length === 0}
-                  >
-                    Print All
-                  </button>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <button
+                      type="button"
+                      onClick={printSelectedQueue}
+                      className="h-12 rounded-xl bg-ink px-6 text-base font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                      disabled={selectedCount === 0}
+                    >
+                      Print Selected
+                    </button>
+                    <button
+                      type="button"
+                      onClick={printAllQueue}
+                      className="h-12 rounded-xl border-2 border-ink bg-white px-6 text-base font-bold text-ink transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+                      disabled={queue.length === 0}
+                    >
+                      Print All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={selectAll}
+                      className="h-12 rounded-xl border-2 border-slate-300 bg-white px-6 text-base font-bold text-ink transition hover:border-ink disabled:cursor-not-allowed disabled:text-slate-400"
+                      disabled={queue.length === 0}
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearSelection}
+                      className="h-12 rounded-xl border-2 border-slate-300 bg-white px-6 text-base font-bold text-ink transition hover:border-ink disabled:cursor-not-allowed disabled:text-slate-400"
+                      disabled={selectedCount === 0}
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
                 </div>
 
                 {queue.length === 0 && (
@@ -440,21 +568,31 @@ export default function HomePage() {
                 )}
 
                 <div className="grid gap-4">
-                  {queue.map((item, index) => {
-                    const isEditing = editingId === item.id;
+                  {queue.map((queueItem, index) => {
+                    const isEditing = editingId === queueItem.id;
+                    const isSelected = selectedSet.has(queueItem.id);
 
                     return (
                       <article
-                        key={item.id}
+                        key={queueItem.id}
                         className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm"
                       >
-                        <div className="mb-3 flex items-center justify-between gap-2">
-                          <h3 className="text-lg font-extrabold">Label {index + 1}</h3>
+                        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <label className="inline-flex items-center gap-2 text-sm font-bold text-ink">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelection(queueItem.id)}
+                              className="h-5 w-5 rounded border-slate-400"
+                            />
+                            <span>Label {index + 1} selected for print</span>
+                          </label>
+
                           <div className="flex gap-2">
                             {!isEditing && (
                               <button
                                 type="button"
-                                onClick={() => startEdit(item)}
+                                onClick={() => startEdit(queueItem)}
                                 className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-bold text-ink transition hover:border-ink"
                               >
                                 Edit
@@ -462,7 +600,7 @@ export default function HomePage() {
                             )}
                             <button
                               type="button"
-                              onClick={() => deleteFromQueue(item.id)}
+                              onClick={() => deleteFromQueue(queueItem.id)}
                               className="h-10 rounded-lg border border-red-300 px-4 text-sm font-bold text-red-700 transition hover:border-red-500"
                             >
                               Delete
@@ -472,11 +610,15 @@ export default function HomePage() {
 
                         {isEditing ? (
                           <>
-                            <FieldInputs value={editingForm} onChange={setEditingForm} idPrefix={`edit-${item.id}`} />
+                            <FieldInputs
+                              value={editingForm}
+                              onChange={setEditingForm}
+                              idPrefix={`edit-${queueItem.id}`}
+                            />
                             <div className="mt-4 flex gap-3">
                               <button
                                 type="button"
-                                onClick={() => saveEdit(item.id)}
+                                onClick={() => saveEdit(queueItem.id)}
                                 className="h-11 rounded-lg bg-ink px-5 text-sm font-bold text-white transition hover:bg-slate-800"
                               >
                                 Save
@@ -494,12 +636,7 @@ export default function HomePage() {
                             </div>
                           </>
                         ) : (
-                          <div className="grid gap-2 text-base font-semibold text-ink md:grid-cols-2">
-                            <p className="rounded-md bg-slate-50 px-3 py-2">Field 1: {item.field1}</p>
-                            <p className="rounded-md bg-slate-50 px-3 py-2">Field 2: {item.field2}</p>
-                            <p className="rounded-md bg-slate-50 px-3 py-2">Field 3: {item.field3}</p>
-                            <p className="rounded-md bg-slate-50 px-3 py-2">Field 4: {item.field4}</p>
-                          </div>
+                          <LabelPreview label={queueItem} />
                         )}
                       </article>
                     );
@@ -519,14 +656,24 @@ export default function HomePage() {
 
       <section id="print-root" aria-hidden>
         {printLabels.map((label, index) => (
-          <div key={`${label.field1}-${label.field2}-${index}`} className="print-page">
+          <div key={`${label.designer}-${label.projectNumber}-${index}`} className="print-page">
             <article className="print-label">
-              <div className="print-field print-field-1">{label.field1}</div>
-              <div className="print-row">
-                <div className="print-field print-field-2">{label.field2}</div>
-                <div className="print-field print-field-3">{label.field3}</div>
-              </div>
-              <div className="print-field print-field-4">{label.field4}</div>
+              <section className="print-cell print-cell-left print-cell-top">
+                <p className="print-cell-title">{FIELD_CONFIG[0].printLabel}</p>
+                <p className="print-cell-value">{label.designer}</p>
+              </section>
+              <section className="print-cell print-cell-top">
+                <p className="print-cell-title">{FIELD_CONFIG[1].printLabel}</p>
+                <p className="print-cell-value">{label.projectNumber}</p>
+              </section>
+              <section className="print-cell print-cell-left">
+                <p className="print-cell-title">{FIELD_CONFIG[2].printLabel}</p>
+                <p className="print-cell-value">{label.item}</p>
+              </section>
+              <section className="print-cell">
+                <p className="print-cell-title">{FIELD_CONFIG[3].printLabel}</p>
+                <p className="print-cell-value">{label.inventoryNumber}</p>
+              </section>
             </article>
           </div>
         ))}

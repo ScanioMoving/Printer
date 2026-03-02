@@ -4,10 +4,11 @@ Simple single-user browser app for printing **4in x 3in** warehouse labels to a 
 
 ## Features
 
-- Single label print mode (4 fields)
+- Single label print mode (Designer, Project #, Item, Inventory #)
 - Batch queue mode (manual add)
 - CSV import (4 columns) for batch queue
 - Edit/delete queue rows before printing
+- Select specific queue labels and print **selected only**
 - Print-only layout with exact **4in x 3in** labels, one per page
 - `@media print` hides UI and prints only labels
 
@@ -29,7 +30,7 @@ Open http://localhost:3000.
 ## Print setup
 
 1. Fill fields or queue labels.
-2. Click `Print Label` or `Print All`.
+2. Click `Print Label`, `Print Selected`, or `Print All`.
 3. In browser print dialog:
 - Select Zebra ZD621 printer
 - Paper/label size: **4in x 3in**
@@ -38,15 +39,15 @@ Open http://localhost:3000.
 
 ## CSV format
 
-- 4 columns in this order: `Field 1, Field 2, Field 3, Field 4`
+- 4 columns in this order: `Designer, Project #, Item, Inventory #`
 - Optional header row is supported.
 
 Example:
 
 ```csv
-Field 1,Field 2,Field 3,Field 4
-Aisle 4,Bin 21,SKU-1001,Qty 12
-Aisle 7,Bin 02,SKU-3008,Qty 3
+Designer,Project #,Item,Inventory #
+Jane Smith,PRJ-4421,Side Table,INV-0087
+Ben Carter,PRJ-4472,Desk Lamp,INV-0119
 ```
 
 ## Deploy to Vercel (free tier)
