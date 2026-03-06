@@ -221,7 +221,7 @@ export default function HomePage() {
           <header className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h1 className="text-3xl font-black tracking-tight md:text-4xl">Warehouse Label Batch Printer</h1>
             <p className="mt-2 text-lg text-steel">
-              4in × 3in Zebra labels with company, project details, and a large bold number.
+              4in × 2.5in Zebra labels with company, project details, and a large bold number.
             </p>
           </header>
 

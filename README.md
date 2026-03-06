@@ -1,6 +1,6 @@
 # Warehouse Label Batch Printer (Next.js + App Router)
 
-Simple single-user browser app for printing **4in x 3in** warehouse labels to a Zebra ZD621 using `window.print()`.
+Simple single-user browser app for printing **4in x 2.5in** warehouse labels to a Zebra ZD621 using `window.print()`.
 
 ## Label Format
 
@@ -20,7 +20,7 @@ Each label prints as:
 - Auto-generate incremental labels (e.g. start `1250`, count `11` -> `1250` to `1260`)
 - Select specific numbers before printing
 - Print selected or print all generated
-- Print-only layout with exact **4in x 3in** labels, one per page
+- Print-only layout with exact **4in x 2.5in** labels, one per page
 - `@media print` hides UI and prints only labels
 
 ## Stack
@@ -47,7 +47,7 @@ Open http://localhost:3000.
 5. Click `Print Selected` or `Print All Generated`.
 6. In browser print dialog:
 - Select Zebra ZD621 printer
-- Paper/label size: **4in x 3in**
+- Paper/label size: **4in x 2.5in**
 - Margins: **None / 0**
 - Scale: **100%**
 

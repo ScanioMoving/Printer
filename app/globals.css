@@ -19,26 +19,26 @@ body {
 
 .print-page {
   width: 4in;
-  height: 3in;
+  height: 2.5in;
   box-sizing: border-box;
 }
 
 .print-label {
   width: 4in;
-  height: 3in;
+  height: 2.5in;
   box-sizing: border-box;
   border: 0.03in solid #000000;
-  padding: 0.14in 0.18in;
+  padding: 0.12in 0.16in;
   background: #ffffff;
   color: #000000;
   display: flex;
   flex-direction: column;
-  gap: 0.06in;
+  gap: 0.04in;
 }
 
 .print-company {
   margin: 0;
-  font-size: 0.42in;
+  font-size: 0.34in;
   font-weight: 900;
   line-height: 0.95;
   text-transform: uppercase;
@@ -47,16 +47,16 @@ body {
 
 .print-project {
   margin: 0;
-  font-size: 0.24in;
+  font-size: 0.2in;
   font-weight: 800;
   line-height: 1.05;
 }
 
 .print-address {
   margin: 0;
-  font-size: 0.2in;
+  font-size: 0.17in;
   font-weight: 700;
-  line-height: 1.08;
+  line-height: 1.05;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -72,27 +72,27 @@ body {
 
 .print-number {
   margin: 0;
-  font-size: 0.95in;
+  font-size: 0.78in;
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: 0.01in;
 }
 
 .print-number-medium {
-  font-size: 0.78in;
+  font-size: 0.66in;
 }
 
 .print-number-small {
-  font-size: 0.64in;
+  font-size: 0.55in;
 }
 
 .print-number-xsmall {
-  font-size: 0.5in;
+  font-size: 0.45in;
 }
 
 @media print {
   @page {
-    size: 4in 3in;
+    size: 4in 2.5in;
     margin: 0;
   }
 
@@ -122,7 +122,7 @@ body {
 
   #print-root .print-page {
     width: 4in;
-    height: 3in;
+    height: 2.5in;
     margin: 0;
     page-break-after: always;
     break-after: page;
