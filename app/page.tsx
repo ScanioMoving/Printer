@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Company = "Scanio" | "Montia" | "SeaAndAir";
+type Company = "Scanio" | "Montia" | "Sea and Air";
 
 type PrintableLabel = {
   company: Company;
