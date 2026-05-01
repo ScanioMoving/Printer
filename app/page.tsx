@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Company = "Scanio" | "Montia" | "Sea" | "Air";
+type Company = "Scanio" | "Montia" | "SeaAndAir";
 
 type PrintableLabel = {
   company: Company;
@@ -231,7 +231,7 @@ export default function HomePage() {
                 <div className="rounded-xl border border-slate-300 bg-slate-50 p-4">
                   <p className="text-sm font-bold uppercase tracking-wide text-slate-600">Company</p>
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    {(["Scanio", "Montia", "Sea", "Air"] as Company[]).map((option) => (
+                    {(["Scanio", "Montia", "SeaAndAir"] as Company[]).map((option) => (
                       <button
                         key={option}
                         type="button"
