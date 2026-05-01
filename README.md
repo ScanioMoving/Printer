@@ -6,14 +6,14 @@ Simple single-user browser app for printing **4in x 2.5in** warehouse labels to 
 
 Each label prints as:
 
-- Company (`Scanio`, `Montia`, or `SeaAndAir`)
+- Company (`Scanio`, `Montia`, or `Sea and Air`)
 - Project Name
 - Project Address
 - Large bold number at the bottom
 
 ## Features
 
-- Company selector buttons (`Scanio` / `Montia` / `SeaAndAir`)
+- Company selector buttons (`Scanio` / `Montia` / `Sea and Air`)
 - Project Name field
 - Project Address field
 - Start Number + Label Count batch generation
