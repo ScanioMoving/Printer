@@ -338,14 +338,14 @@ export default function HomePage() {
                   <h2 className="text-lg font-extrabold text-ink">Live Label Preview</h2>
                   <div className="mt-3 rounded-lg border-2 border-slate-900 bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-3xl font-black uppercase tracking-tight">{company}</p>
-                      <div className="min-w-28 rounded border-2 border-slate-900 px-2 py-1 text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Reference</p>
-                        <p className="text-sm font-extrabold text-ink">{referenceText.trim() || "-"}</p>
+                      <p className="text-4xl font-black uppercase tracking-tight">{company}</p>
+                      <div className="min-w-32 rounded border-2 border-slate-900 px-2.5 py-1.5 text-right">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-600">Reference</p>
+                        <p className="text-base font-extrabold text-ink">{referenceText.trim() || "-"}</p>
                       </div>
                     </div>
-                    <p className="mt-2 text-xl font-black">{projectName.trim() || "Project Name"}</p>
-                    <p className="mt-1 whitespace-pre-wrap text-lg font-bold leading-tight text-slate-800">
+                    <p className="mt-2 text-[22px] font-black">{projectName.trim() || "Project Name"}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-xl font-bold leading-tight text-slate-800">
                       {projectAddress.trim() || "Project Address"}
                     </p>
                     <div className="mt-4 text-center">

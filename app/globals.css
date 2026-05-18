@@ -45,7 +45,7 @@ body {
 
 .print-company {
   margin: 0;
-  font-size: 0.34in;
+  font-size: 0.37in;
   font-weight: 900;
   line-height: 0.95;
   text-transform: uppercase;
@@ -53,16 +53,16 @@ body {
 }
 
 .print-reference-box {
-  min-width: 1.18in;
+  min-width: 1.3in;
   border: 0.02in solid #000000;
-  padding: 0.02in 0.04in;
+  padding: 0.03in 0.05in;
   box-sizing: border-box;
   text-align: right;
 }
 
 .print-reference-label {
   margin: 0;
-  font-size: 0.1in;
+  font-size: 0.12in;
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.01in;
@@ -71,7 +71,7 @@ body {
 
 .print-reference-value {
   margin: 0.01in 0 0;
-  font-size: 0.14in;
+  font-size: 0.17in;
   font-weight: 900;
   line-height: 1.05;
   word-break: break-word;
@@ -80,14 +80,14 @@ body {
 
 .print-project {
   margin: 0;
-  font-size: 0.2in;
+  font-size: 0.23in;
   font-weight: 800;
   line-height: 1.05;
 }
 
 .print-address {
   margin: 0;
-  font-size: 0.17in;
+  font-size: 0.2in;
   font-weight: 700;
   line-height: 1.05;
   white-space: pre-wrap;
