@@ -8,6 +8,7 @@ type PrintableLabel = {
   company: Company;
   projectName: string;
   projectAddress: string;
+  referenceText: string;
   number: number;
 };
 
@@ -72,6 +73,7 @@ export default function HomePage() {
   const [company, setCompany] = useState<Company>("Scanio");
   const [projectName, setProjectName] = useState("");
   const [projectAddress, setProjectAddress] = useState("");
+  const [referenceText, setReferenceText] = useState("");
   const [startNumber, setStartNumber] = useState("");
   const [labelCount, setLabelCount] = useState("");
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
@@ -151,6 +153,7 @@ export default function HomePage() {
   function buildPrintableLabels(numbers: number[]): PrintableLabel[] {
     const trimmedProjectName = projectName.trim();
     const trimmedProjectAddress = projectAddress.trim();
+    const trimmedReferenceText = referenceText.trim();
 
     return numbers
       .slice()
@@ -159,6 +162,7 @@ export default function HomePage() {
         company,
         projectName: trimmedProjectName,
         projectAddress: trimmedProjectAddress,
+        referenceText: trimmedReferenceText,
         number: numberValue
       }));
   }
@@ -267,6 +271,18 @@ export default function HomePage() {
                   />
                 </label>
 
+                <label className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
+                  <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+                    Reference (Top Right)
+                  </span>
+                  <input
+                    className="h-12 rounded-lg border border-slate-300 px-3 text-lg font-semibold text-ink outline-none transition focus:border-slate-600"
+                    value={referenceText}
+                    onChange={(event) => setReferenceText(event.target.value)}
+                    autoComplete="off"
+                  />
+                </label>
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
                     <span className="text-sm font-semibold uppercase tracking-wide text-slate-600">Start Number</span>
@@ -321,7 +337,13 @@ export default function HomePage() {
                 <section className="rounded-xl border border-slate-300 bg-slate-50 p-4">
                   <h2 className="text-lg font-extrabold text-ink">Live Label Preview</h2>
                   <div className="mt-3 rounded-lg border-2 border-slate-900 bg-white p-4">
-                    <p className="text-3xl font-black uppercase tracking-tight">{company}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-3xl font-black uppercase tracking-tight">{company}</p>
+                      <div className="min-w-28 rounded border-2 border-slate-900 px-2 py-1 text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Reference</p>
+                        <p className="text-sm font-extrabold text-ink">{referenceText.trim() || "-"}</p>
+                      </div>
+                    </div>
                     <p className="mt-2 text-xl font-black">{projectName.trim() || "Project Name"}</p>
                     <p className="mt-1 whitespace-pre-wrap text-lg font-bold leading-tight text-slate-800">
                       {projectAddress.trim() || "Project Address"}
@@ -411,7 +433,13 @@ export default function HomePage() {
         {printLabels.map((label, index) => (
           <div key={`${label.number}-${index}`} className="print-page">
             <article className="print-label">
-              <p className="print-company">{label.company}</p>
+              <div className="print-header">
+                <p className="print-company">{label.company}</p>
+                <div className="print-reference-box">
+                  <p className="print-reference-label">Reference</p>
+                  <p className="print-reference-value">{label.referenceText || "-"}</p>
+                </div>
+              </div>
               <p className="print-project">{label.projectName}</p>
               <p className="print-address">{label.projectAddress}</p>
               <div className="print-number-wrap">

@@ -36,6 +36,13 @@ body {
   gap: 0.04in;
 }
 
+.print-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.08in;
+}
+
 .print-company {
   margin: 0;
   font-size: 0.34in;
@@ -43,6 +50,32 @@ body {
   line-height: 0.95;
   text-transform: uppercase;
   letter-spacing: 0.01in;
+}
+
+.print-reference-box {
+  min-width: 1.18in;
+  border: 0.02in solid #000000;
+  padding: 0.02in 0.04in;
+  box-sizing: border-box;
+  text-align: right;
+}
+
+.print-reference-label {
+  margin: 0;
+  font-size: 0.1in;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01in;
+  text-transform: uppercase;
+}
+
+.print-reference-value {
+  margin: 0.01in 0 0;
+  font-size: 0.14in;
+  font-weight: 900;
+  line-height: 1.05;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .print-project {
@@ -134,7 +167,11 @@ body {
   }
 
   .print-label,
+  .print-header,
   .print-company,
+  .print-reference-box,
+  .print-reference-label,
+  .print-reference-value,
   .print-project,
   .print-address,
   .print-number {
