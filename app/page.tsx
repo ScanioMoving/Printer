@@ -81,16 +81,8 @@ export default function HomePage() {
   const [status, setStatus] = useState("");
   const [printLabels, setPrintLabels] = useState<PrintableLabel[]>([]);
   const [pendingPrint, setPendingPrint] = useState(false);
-  const [useMacCupsRotation, setUseMacCupsRotation] = useState(false);
 
   const selectedSet = useMemo(() => new Set(selectedNumbers), [selectedNumbers]);
-
-  useEffect(() => {
-    const isMac =
-      /Mac/i.test(window.navigator.platform) || /Macintosh|Mac OS X/i.test(window.navigator.userAgent);
-
-    setUseMacCupsRotation(isMac);
-  }, []);
 
   useEffect(() => {
     if (!pendingPrint) {
@@ -235,11 +227,6 @@ export default function HomePage() {
             <p className="mt-2 text-lg text-steel">
               4in × 3in Zebra labels with company, project details, and a large bold number.
             </p>
-            {useMacCupsRotation && (
-              <p className="mt-3 rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
-                Mac Zebra correction active for CUPS orientation 4.
-              </p>
-            )}
           </header>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
@@ -442,13 +429,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {useMacCupsRotation && (
-        <style media="print">
-          {"@page { size: 3in 4in; margin: 0; } html, body, #print-root { width: 3in !important; }"}
-        </style>
-      )}
-
-      <section id="print-root" className={useMacCupsRotation ? "print-root-mac-cups4" : undefined} aria-hidden>
+      <section id="print-root" aria-hidden>
         {printLabels.map((label, index) => (
           <div key={`${label.number}-${index}`} className="print-page">
             <article className="print-label">

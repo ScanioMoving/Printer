@@ -23,7 +23,6 @@ Each label prints as:
 - Select specific numbers before printing
 - Print selected or print all generated
 - Print-only layout with exact **4in x 3in** labels, one per page
-- Automatic macOS compensation for a Zebra CUPS queue configured with `orientation-requested=4`
 - `@media print` hides UI and prints only labels
 
 ## Stack
@@ -53,15 +52,6 @@ Open http://localhost:3000.
 - Paper/label size: **4in x 3in**
 - Margins: **None / 0**
 - Scale: **100%**
-
-On the Mac connected to the Zebra, configure the queue with:
-
-```bash
-lpoptions -o PageSize=w288h216 -o orientation-requested=4
-```
-
-The site detects macOS and sends a clockwise pre-rotated 3in x 4in logical page. CUPS rotates that
-page counterclockwise onto the physical 4in x 3in label, preserving the full label without cropping.
 
 ## Deploy to Vercel (free tier)
 

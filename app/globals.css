@@ -165,18 +165,6 @@ body {
     break-after: auto;
   }
 
-  #print-root.print-root-mac-cups4 .print-page {
-    width: 3in;
-    height: 4in;
-  }
-
-  #print-root.print-root-mac-cups4 .print-label {
-    width: 4in;
-    height: 3in;
-    transform: translateX(3in) rotate(90deg);
-    transform-origin: top left;
-  }
-
   .print-label,
   .print-header,
   .print-company,
