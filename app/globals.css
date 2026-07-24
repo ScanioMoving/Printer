@@ -165,27 +165,6 @@ body {
     break-after: auto;
   }
 
-  #print-root[data-print-rotation="left"] .print-page,
-  #print-root[data-print-rotation="right"] .print-page {
-    width: 3in;
-    height: 4in;
-  }
-
-  #print-root[data-print-rotation="left"] .print-label,
-  #print-root[data-print-rotation="right"] .print-label {
-    width: 4in;
-    height: 3in;
-    transform-origin: top left;
-  }
-
-  #print-root[data-print-rotation="left"] .print-label {
-    transform: translateY(4in) rotate(-90deg);
-  }
-
-  #print-root[data-print-rotation="right"] .print-label {
-    transform: translateX(3in) rotate(90deg);
-  }
-
   .print-label,
   .print-header,
   .print-company,
