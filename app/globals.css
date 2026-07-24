@@ -19,13 +19,13 @@ body {
 
 .print-page {
   width: 4in;
-  height: 2.5in;
+  height: 3in;
   box-sizing: border-box;
 }
 
 .print-label {
   width: 4in;
-  height: 2.5in;
+  height: 3in;
   box-sizing: border-box;
   border: 0.03in solid #000000;
   padding: 0.12in 0.16in;
@@ -125,38 +125,37 @@ body {
 
 @media print {
   @page {
-    size: 4in 2.5in;
+    size: 4in 3in;
     margin: 0;
   }
 
   html,
   body {
+    width: 4in;
     margin: 0;
     padding: 0;
     background: #ffffff;
   }
 
-  body * {
-    visibility: hidden;
-  }
-
-  #print-root,
-  #print-root * {
-    visibility: visible;
+  #app-root {
+    display: none !important;
   }
 
   #print-root {
     display: block !important;
-    position: absolute;
-    inset: 0;
+    position: static;
+    width: 4in;
     margin: 0;
     padding: 0;
   }
 
   #print-root .print-page {
     width: 4in;
-    height: 2.5in;
+    height: 3in;
     margin: 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+    break-inside: avoid-page;
     page-break-after: always;
     break-after: page;
   }
