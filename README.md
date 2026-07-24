@@ -23,6 +23,9 @@ Each label prints as:
 - Select specific numbers before printing
 - Print selected or print all generated
 - Print-only layout with exact **4in x 3in** labels, one per page
+- Print orientation controls for normal, 90-degree left, and 90-degree right output
+- Mac defaults to Rotate Left while Windows defaults to Normal
+- The selected orientation is remembered on each computer
 - `@media print` hides UI and prints only labels
 
 ## Stack
@@ -52,6 +55,10 @@ Open http://localhost:3000.
 - Paper/label size: **4in x 3in**
 - Margins: **None / 0**
 - Scale: **100%**
+
+Use **Normal (Windows)** for the existing Windows setup. On macOS, start with **Rotate Left (Mac)**.
+If the print preview rotates in the opposite direction, select **Rotate Right (Mac)** instead. The site
+remembers the selected orientation on that computer.
 
 ## Deploy to Vercel (free tier)
 

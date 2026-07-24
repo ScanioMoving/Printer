@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Company = "Scanio" | "Montia" | "Sea&Air";
+type PrintRotation = "normal" | "left" | "right";
 
 type PrintableLabel = {
   company: Company;
@@ -13,6 +14,13 @@ type PrintableLabel = {
 };
 
 const MAX_LABELS_PER_BATCH = 2000;
+const PRINT_ROTATION_STORAGE_KEY = "label-printer-rotation";
+
+const PRINT_ROTATION_OPTIONS: { value: PrintRotation; label: string }[] = [
+  { value: "normal", label: "Normal (Windows)" },
+  { value: "left", label: "Rotate Left (Mac)" },
+  { value: "right", label: "Rotate Right (Mac)" }
+];
 
 function parseWholeNumber(value: string): number | null {
   const trimmed = value.trim();
@@ -81,8 +89,25 @@ export default function HomePage() {
   const [status, setStatus] = useState("");
   const [printLabels, setPrintLabels] = useState<PrintableLabel[]>([]);
   const [pendingPrint, setPendingPrint] = useState(false);
+  const [printRotation, setPrintRotation] = useState<PrintRotation>("normal");
 
   const selectedSet = useMemo(() => new Set(selectedNumbers), [selectedNumbers]);
+
+  useEffect(() => {
+    const savedRotation = window.localStorage.getItem(PRINT_ROTATION_STORAGE_KEY);
+
+    if (savedRotation === "normal" || savedRotation === "left" || savedRotation === "right") {
+      setPrintRotation(savedRotation);
+      return;
+    }
+
+    const isMac =
+      /Mac/i.test(window.navigator.platform) || /Macintosh|Mac OS X/i.test(window.navigator.userAgent);
+
+    if (isMac) {
+      setPrintRotation("left");
+    }
+  }, []);
 
   useEffect(() => {
     if (!pendingPrint) {
@@ -210,6 +235,11 @@ export default function HomePage() {
     setSelectedNumbers([]);
   }
 
+  function selectPrintRotation(rotation: PrintRotation) {
+    setPrintRotation(rotation);
+    window.localStorage.setItem(PRINT_ROTATION_STORAGE_KEY, rotation);
+  }
+
   const sampleNumber =
     selectedNumbers.length > 0
       ? selectedNumbers[0]
@@ -228,6 +258,31 @@ export default function HomePage() {
               4in × 3in Zebra labels with company, project details, and a large bold number.
             </p>
           </header>
+
+          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
+            <h2 className="text-lg font-extrabold text-ink">Print Orientation</h2>
+            <p className="mt-1 text-sm font-semibold text-steel">
+              Mac defaults to Rotate Left. If the print preview turns the wrong direction, choose Rotate Right.
+              Windows defaults to Normal.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {PRINT_ROTATION_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={printRotation === option.value}
+                  onClick={() => selectPrintRotation(option.value)}
+                  className={`min-h-12 rounded-xl border-2 px-4 text-sm font-extrabold transition ${
+                    printRotation === option.value
+                      ? "border-ink bg-ink text-white"
+                      : "border-slate-300 bg-white text-ink hover:border-ink"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </section>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
             <div className="grid gap-5 lg:grid-cols-2">
@@ -429,7 +484,13 @@ export default function HomePage() {
         </section>
       </main>
 
-      <section id="print-root" aria-hidden>
+      {printRotation !== "normal" && (
+        <style media="print">
+          {"@page { size: 3in 4in; margin: 0; } html, body, #print-root { width: 3in !important; }"}
+        </style>
+      )}
+
+      <section id="print-root" data-print-rotation={printRotation} aria-hidden>
         {printLabels.map((label, index) => (
           <div key={`${label.number}-${index}`} className="print-page">
             <article className="print-label">
