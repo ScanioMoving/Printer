@@ -22,6 +22,9 @@ const BROWSER_PRINT_ORIGINS = [
 ];
 const REQUEST_TIMEOUT_MS = 12000;
 const LABELS_PER_REQUEST = 50;
+const DEFAULT_PRINTER_DPI = 300;
+
+type PrinterDpi = 203 | 300;
 
 function cleanZplText(value: string): string {
   return value
@@ -49,31 +52,39 @@ function getNumberFont(number: number): { height: number; width: number } {
   return { height: 82, width: 68 };
 }
 
-export function buildZplLabel(label: ZebraLabel): string {
+function scaleDots(value: number, dpi: PrinterDpi): number {
+  return Math.round((value * dpi) / 203);
+}
+
+export function buildZplLabel(
+  label: ZebraLabel,
+  dpi: PrinterDpi = 203
+): string {
   const company = cleanZplText(label.company).toUpperCase();
   const projectName = cleanZplText(label.projectName);
   const projectAddress = cleanZplText(label.projectAddress);
   const referenceText = cleanZplText(label.referenceText || "-");
   const numberText = cleanZplText(`#${label.number}`);
   const numberFont = getNumberFont(label.number);
+  const dots = (value: number) => scaleDots(value, dpi);
 
   return [
     "^XA",
     "^CI28",
     "^PON",
     "^FWN",
-    "^PW812",
-    "^LL609",
+    `^PW${dpi * 4}`,
+    `^LL${dpi * 3}`,
     "^LH0,0",
     "^LS0",
-    "^FO18,18^GB776,573,4^FS",
-    `^FO36,34^A0N,68,56^FB470,1,0,L,0^FD${company}^FS`,
-    "^FO530,28^GB246,92,3^FS",
-    "^FO542,37^A0N,22,18^FB222,1,0,R,0^FDREFERENCE^FS",
-    `^FO542,72^A0N,30,25^FB222,1,0,R,0^FD${referenceText}^FS`,
-    `^FO36,145^A0N,42,36^FB740,2,5,L,0^FD${projectName}^FS`,
-    `^FO36,245^A0N,33,28^FB740,3,6,L,0^FD${projectAddress}^FS`,
-    `^FO20,412^A0N,${numberFont.height},${numberFont.width}^FB772,1,0,C,0^FD${numberText}^FS`,
+    `^FO${dots(18)},${dots(18)}^GB${dots(776)},${dots(573)},${dots(4)}^FS`,
+    `^FO${dots(36)},${dots(34)}^A0N,${dots(68)},${dots(56)}^FB${dots(470)},1,0,L,0^FD${company}^FS`,
+    `^FO${dots(530)},${dots(28)}^GB${dots(246)},${dots(92)},${dots(3)}^FS`,
+    `^FO${dots(542)},${dots(37)}^A0N,${dots(22)},${dots(18)}^FB${dots(222)},1,0,R,0^FDREFERENCE^FS`,
+    `^FO${dots(542)},${dots(72)}^A0N,${dots(30)},${dots(25)}^FB${dots(222)},1,0,R,0^FD${referenceText}^FS`,
+    `^FO${dots(36)},${dots(145)}^A0N,${dots(42)},${dots(36)}^FB${dots(740)},2,${dots(5)},L,0^FD${projectName}^FS`,
+    `^FO${dots(36)},${dots(245)}^A0N,${dots(33)},${dots(28)}^FB${dots(740)},3,${dots(6)},L,0^FD${projectAddress}^FS`,
+    `^FO${dots(20)},${dots(412)}^A0N,${dots(numberFont.height)},${dots(numberFont.width)}^FB${dots(772)},1,0,C,0^FD${numberText}^FS`,
     "^XZ"
   ].join("\n");
 }
@@ -183,11 +194,65 @@ function getDevicePayload(device: ZebraDevice): Record<string, string | number> 
   return payload;
 }
 
+async function detectPrinterDpi(
+  origin: string,
+  device: ZebraDevice
+): Promise<PrinterDpi> {
+  const devicePayload = getDevicePayload(device);
+
+  try {
+    await browserPrintRequest(`${origin}/write`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        device: devicePayload,
+        data: '! U1 getvar "head.resolution.in_dpi"\r\n'
+      })
+    });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const response = await browserPrintRequest(`${origin}/read`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ device: devicePayload })
+      });
+      const text = await response.text();
+      const match = text.match(/\b(203|300)\b/);
+
+      if (match?.[1] === "203" || match?.[1] === "300") {
+        return Number(match[1]) as PrinterDpi;
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, 100));
+    }
+  } catch {
+    // Some Browser Print releases do not expose two-way reads. The physical
+    // ZD621 used by this app is the 300 dpi model, so use that safe fallback.
+  }
+
+  const deviceDescription = [
+    device.name,
+    device.manufacturer,
+    device.provider
+  ].join(" ");
+
+  if (/\b203\s*dpi\b/i.test(deviceDescription)) {
+    return 203;
+  }
+
+  return DEFAULT_PRINTER_DPI;
+}
+
 export async function printZplLabelsDirect(
   labels: ZebraLabel[]
-): Promise<string> {
+): Promise<{ printerName: string; dpi: PrinterDpi }> {
   const { device, origin } = await findDefaultPrinter();
-  const jobs = labels.map(buildZplLabel);
+  const dpi = await detectPrinterDpi(origin, device);
+  const jobs = labels.map((label) => buildZplLabel(label, dpi));
 
   for (let index = 0; index < jobs.length; index += LABELS_PER_REQUEST) {
     const data = jobs.slice(index, index + LABELS_PER_REQUEST).join("\n");
@@ -204,5 +269,8 @@ export async function printZplLabelsDirect(
     });
   }
 
-  return device.name || "default Zebra printer";
+  return {
+    printerName: device.name || "default Zebra printer",
+    dpi
+  };
 }

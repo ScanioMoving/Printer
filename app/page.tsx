@@ -230,9 +230,9 @@ export default function HomePage() {
     );
 
     try {
-      const printerName = await printZplLabelsDirect(labels);
+      const { printerName, dpi } = await printZplLabelsDirect(labels);
       setStatus(
-        `Sent ${labels.length} 4×3 label${labels.length === 1 ? "" : "s"} directly to ${printerName}.`
+        `Sent ${labels.length} 4×3 label${labels.length === 1 ? "" : "s"} directly to ${printerName} at ${dpi} dpi.`
       );
     } catch (error) {
       const message =

@@ -55,7 +55,8 @@ Open http://localhost:3000.
 
 ### macOS direct Zebra printing
 
-The Mac buttons send exact 4in × 3in ZPL directly to the Zebra at 203 dpi. This
+The Mac buttons detect the Zebra printhead resolution and send exact 4in × 3in
+ZPL at either 203 dpi (812 × 609 dots) or 300 dpi (1200 × 900 dots). This
 bypasses the macOS print dialog, CUPS rotation, and automatic page scaling.
 
 1. [Install and run Zebra Browser Print for macOS](https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html).
