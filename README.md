@@ -69,6 +69,8 @@ bypasses the macOS print dialog, CUPS rotation, and automatic page scaling.
 Windows continues to use the existing system print flow.
 On Windows, use `Windows Print` for the selected labels or
 `Windows Print All` for the complete generated batch.
+The original 4in × 2.5in Windows artwork is centered on each 4in × 3in
+physical label so the printed layout matches the established Windows labels.
 
 ## Deploy to Vercel (free tier)
 

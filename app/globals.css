@@ -154,10 +154,19 @@ body {
     height: 3in;
     margin: 0;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     page-break-inside: avoid;
     break-inside: avoid-page;
     page-break-after: always;
     break-after: page;
+  }
+
+  #print-root .print-label {
+    width: 4in;
+    height: 2.5in;
+    flex: 0 0 auto;
   }
 
   #print-root .print-page:last-child {
