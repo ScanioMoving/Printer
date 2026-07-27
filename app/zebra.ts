@@ -38,18 +38,18 @@ function getNumberFont(number: number): { height: number; width: number } {
   const digits = Math.abs(number).toString().length;
 
   if (digits <= 4) {
-    return { height: 150, width: 125 };
+    return { height: 185, width: 250 };
   }
 
   if (digits <= 6) {
-    return { height: 125, width: 105 };
+    return { height: 160, width: 150 };
   }
 
   if (digits <= 8) {
-    return { height: 100, width: 84 };
+    return { height: 135, width: 105 };
   }
 
-  return { height: 82, width: 68 };
+  return { height: 110, width: 80 };
 }
 
 function scaleDots(value: number, dpi: PrinterDpi): number {
@@ -77,14 +77,14 @@ export function buildZplLabel(
     `^LL${dpi * 3}`,
     "^LH0,0",
     "^LS0",
-    `^FO${dots(18)},${dots(18)}^GB${dots(776)},${dots(573)},${dots(4)}^FS`,
-    `^FO${dots(36)},${dots(34)}^A0N,${dots(68)},${dots(56)}^FB${dots(470)},1,0,L,0^FD${company}^FS`,
-    `^FO${dots(530)},${dots(28)}^GB${dots(246)},${dots(92)},${dots(3)}^FS`,
-    `^FO${dots(542)},${dots(37)}^A0N,${dots(22)},${dots(18)}^FB${dots(222)},1,0,R,0^FDREFERENCE^FS`,
-    `^FO${dots(542)},${dots(72)}^A0N,${dots(30)},${dots(25)}^FB${dots(222)},1,0,R,0^FD${referenceText}^FS`,
-    `^FO${dots(36)},${dots(145)}^A0N,${dots(42)},${dots(36)}^FB${dots(740)},2,${dots(5)},L,0^FD${projectName}^FS`,
-    `^FO${dots(36)},${dots(245)}^A0N,${dots(33)},${dots(28)}^FB${dots(740)},3,${dots(6)},L,0^FD${projectAddress}^FS`,
-    `^FO${dots(20)},${dots(412)}^A0N,${dots(numberFont.height)},${dots(numberFont.width)}^FB${dots(772)},1,0,C,0^FD${numberText}^FS`,
+    `^FO${dots(18)},${dots(51)}^GB${dots(776)},${dots(507)},${dots(6)}^FS`,
+    `^FO${dots(31)},${dots(81)}^A0N,${dots(75)},${dots(106)}^FB${dots(470)},1,0,L,0^FD${company}^FS`,
+    `^FO${dots(518)},${dots(81)}^GB${dots(264)},${dots(75)},${dots(4)}^FS`,
+    `^FO${dots(528)},${dots(87)}^A0N,${dots(24)},${dots(20)}^FB${dots(244)},1,0,R,0^FDREFERENCE^FS`,
+    `^FO${dots(528)},${dots(113)}^A0N,${dots(35)},${dots(29)}^FB${dots(244)},1,0,R,0^FD${referenceText}^FS`,
+    `^FO${dots(31)},${dots(164)}^A0N,${dots(47)},${dots(41)}^FB${dots(750)},2,${dots(5)},L,0^FD${projectName}^FS`,
+    `^FO${dots(31)},${dots(221)}^A0N,${dots(41)},${dots(35)}^FB${dots(750)},3,${dots(6)},L,0^FD${projectAddress}^FS`,
+    `^FO${dots(30)},${dots(372)}^A0N,${dots(numberFont.height)},${dots(numberFont.width)}^FB${dots(752)},1,0,C,0^FD${numberText}^FS`,
     "^XZ"
   ].join("\n");
 }

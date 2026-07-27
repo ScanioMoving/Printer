@@ -58,6 +58,8 @@ Open http://localhost:3000.
 The Mac buttons detect the Zebra printhead resolution and send exact 4in × 3in
 ZPL at either 203 dpi (812 × 609 dots) or 300 dpi (1200 × 900 dots). This
 bypasses the macOS print dialog, CUPS rotation, and automatic page scaling.
+The direct ZPL uses the same centered 4in × 2.5in artwork proportions as the
+established Windows labels.
 
 1. [Install and run Zebra Browser Print for macOS](https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html).
 2. In Browser Print settings, choose the ZD621 as the default printer.
