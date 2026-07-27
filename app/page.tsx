@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { printZplLabelsDirect } from "./zebra";
 
 type Company = "Scanio" | "Montia" | "Sea&Air";
 
@@ -81,8 +82,17 @@ export default function HomePage() {
   const [status, setStatus] = useState("");
   const [printLabels, setPrintLabels] = useState<PrintableLabel[]>([]);
   const [pendingPrint, setPendingPrint] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+  const [directPrinting, setDirectPrinting] = useState(false);
 
   const selectedSet = useMemo(() => new Set(selectedNumbers), [selectedNumbers]);
+
+  useEffect(() => {
+    setIsMac(
+      /Mac/i.test(navigator.platform) ||
+        /Macintosh|Mac OS X/i.test(navigator.userAgent)
+    );
+  }, []);
 
   useEffect(() => {
     if (!pendingPrint) {
@@ -202,6 +212,39 @@ export default function HomePage() {
     startPrint(buildPrintableLabels(generatedNumbers));
   }
 
+  async function printDirect(numbers: number[]) {
+    if (!hasTemplateValues()) {
+      setStatus("Fill Project Name and Project Address before printing.");
+      return;
+    }
+
+    if (numbers.length === 0) {
+      setStatus("Select or generate at least one label before printing.");
+      return;
+    }
+
+    const labels = buildPrintableLabels(numbers);
+    setDirectPrinting(true);
+    setStatus(
+      `Connecting directly to the Zebra and sending ${labels.length} label${labels.length === 1 ? "" : "s"}…`
+    );
+
+    try {
+      const printerName = await printZplLabelsDirect(labels);
+      setStatus(
+        `Sent ${labels.length} 4×3 label${labels.length === 1 ? "" : "s"} directly to ${printerName}.`
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Direct Zebra printing failed.";
+      setStatus(
+        `${message} Open https://localhost:9101/ssl_support once in this browser, then try again.`
+      );
+    } finally {
+      setDirectPrinting(false);
+    }
+  }
+
   function selectAll() {
     setSelectedNumbers(generatedNumbers);
   }
@@ -227,6 +270,34 @@ export default function HomePage() {
             <p className="mt-2 text-lg text-steel">
               4in × 3in Zebra labels with company, project details, and a large bold number.
             </p>
+            {isMac && (
+              <div className="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-950">
+                <p>
+                  Mac direct Zebra mode bypasses the system print dialog so macOS cannot rotate or scale the label.
+                </p>
+                <p className="mt-1">
+                  One-time setup:{" "}
+                  <a
+                    className="underline"
+                    href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    install Zebra Browser Print
+                  </a>
+                  , select the ZD621 as its default, then{" "}
+                  <a
+                    className="underline"
+                    href="https://localhost:9101/ssl_support"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    approve its local certificate
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
           </header>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
@@ -316,20 +387,34 @@ export default function HomePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={printSelected}
+                    onClick={() =>
+                      isMac ? void printDirect(selectedNumbers) : printSelected()
+                    }
                     className="h-12 rounded-xl bg-ink px-6 text-base font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                    disabled={selectedNumbers.length === 0}
+                    disabled={selectedNumbers.length === 0 || directPrinting}
                   >
-                    Print Selected
+                    {isMac ? "Mac: Print Selected Direct" : "Print Selected"}
                   </button>
                   <button
                     type="button"
-                    onClick={printAllGenerated}
+                    onClick={() =>
+                      isMac ? void printDirect(generatedNumbers) : printAllGenerated()
+                    }
                     className="h-12 rounded-xl border-2 border-ink bg-white px-6 text-base font-bold text-ink transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
-                    disabled={generatedNumbers.length === 0}
+                    disabled={generatedNumbers.length === 0 || directPrinting}
                   >
-                    Print All Generated
+                    {isMac ? "Mac: Print All Direct" : "Print All Generated"}
                   </button>
+                  {isMac && (
+                    <button
+                      type="button"
+                      onClick={printSelected}
+                      className="h-12 rounded-xl border border-slate-300 bg-white px-5 text-sm font-bold text-slate-600 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:text-slate-400"
+                      disabled={selectedNumbers.length === 0 || directPrinting}
+                    >
+                      System Print (fallback)
+                    </button>
+                  )}
                 </div>
               </div>
 

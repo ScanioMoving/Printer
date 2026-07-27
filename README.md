@@ -53,6 +53,20 @@ Open http://localhost:3000.
 - Margins: **None / 0**
 - Scale: **100%**
 
+### macOS direct Zebra printing
+
+The Mac buttons send exact 4in × 3in ZPL directly to the Zebra at 203 dpi. This
+bypasses the macOS print dialog, CUPS rotation, and automatic page scaling.
+
+1. [Install and run Zebra Browser Print for macOS](https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html).
+2. In Browser Print settings, choose the ZD621 as the default printer.
+3. Open `https://localhost:9101/ssl_support` once in the printing browser and
+   accept the local certificate.
+4. Approve the deployed website when Browser Print asks for permission.
+5. Use `Mac: Print Selected Direct` or `Mac: Print All Direct`.
+
+Windows continues to use the existing system print flow.
+
 ## Deploy to Vercel (free tier)
 
 1. Push to GitHub.
