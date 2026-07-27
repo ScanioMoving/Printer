@@ -298,6 +298,11 @@ export default function HomePage() {
                 </p>
               </div>
             )}
+            {!isMac && (
+              <p className="mt-3 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-950">
+                Windows print mode uses the standard print dialog with the existing 4×3 label setup.
+              </p>
+            )}
           </header>
 
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
@@ -393,7 +398,7 @@ export default function HomePage() {
                     className="h-12 rounded-xl bg-ink px-6 text-base font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
                     disabled={selectedNumbers.length === 0 || directPrinting}
                   >
-                    {isMac ? "Mac: Print Selected Direct" : "Print Selected"}
+                    {isMac ? "Mac: Print Selected Direct" : "Windows Print"}
                   </button>
                   <button
                     type="button"
@@ -403,7 +408,7 @@ export default function HomePage() {
                     className="h-12 rounded-xl border-2 border-ink bg-white px-6 text-base font-bold text-ink transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
                     disabled={generatedNumbers.length === 0 || directPrinting}
                   >
-                    {isMac ? "Mac: Print All Direct" : "Print All Generated"}
+                    {isMac ? "Mac: Print All Direct" : "Windows Print All"}
                   </button>
                   {isMac && (
                     <button

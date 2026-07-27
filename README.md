@@ -67,6 +67,8 @@ bypasses the macOS print dialog, CUPS rotation, and automatic page scaling.
 5. Use `Mac: Print Selected Direct` or `Mac: Print All Direct`.
 
 Windows continues to use the existing system print flow.
+On Windows, use `Windows Print` for the selected labels or
+`Windows Print All` for the complete generated batch.
 
 ## Deploy to Vercel (free tier)
 
