@@ -68,6 +68,10 @@ established Windows labels.
 4. Approve the deployed website when Browser Print asks for permission.
 5. Use `Mac: Print Selected Direct` or `Mac: Print All Direct`.
 
+If the printer is unplugged or moved to another USB port, the site discovers the
+currently connected Zebra again before printing instead of relying only on
+Browser Print's previously saved device ID.
+
 Windows continues to use the existing system print flow.
 On Windows, use `Windows Print` for the selected labels or
 `Windows Print All` for the complete generated batch.

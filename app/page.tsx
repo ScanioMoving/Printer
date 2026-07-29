@@ -237,9 +237,22 @@ export default function HomePage() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Direct Zebra printing failed.";
-      setStatus(
-        `${message} Open https://localhost:9101/ssl_support once in this browser, then try again.`
-      );
+
+      if (message.includes("HTTP 500")) {
+        setStatus(
+          "Zebra Browser Print is running, but the connected printer rejected the job. Confirm the ZD621 is powered on and connected by USB, then quit and reopen Zebra Browser Print."
+        );
+      } else if (message.includes("no connected Zebra printer")) {
+        setStatus(
+          "Browser Print is running, but no connected Zebra was found. Reconnect the USB cable, open Browser Print Settings, and select the ZD621."
+        );
+      } else if (message.includes("Cannot reach Zebra Browser Print")) {
+        setStatus(
+          `${message} Open https://localhost:9101/ssl_support once in this browser, then try again.`
+        );
+      } else {
+        setStatus(message);
+      }
     } finally {
       setDirectPrinting(false);
     }

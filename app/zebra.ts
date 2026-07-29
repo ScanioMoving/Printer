@@ -113,6 +113,50 @@ function parseDevice(payload: unknown): ZebraDevice | null {
   };
 }
 
+function collectDevices(payload: unknown, depth = 0): ZebraDevice[] {
+  if (depth > 4 || payload === null || payload === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(payload)) {
+    return payload.flatMap((item) => collectDevices(item, depth + 1));
+  }
+
+  const device = parseDevice(payload);
+  if (device) {
+    return [device];
+  }
+
+  if (typeof payload !== "object") {
+    return [];
+  }
+
+  return Object.values(payload as Record<string, unknown>).flatMap((value) =>
+    collectDevices(value, depth + 1)
+  );
+}
+
+function chooseConnectedPrinter(devices: ZebraDevice[]): ZebraDevice | null {
+  const uniqueDevices = Array.from(
+    new Map(devices.map((device) => [device.uid, device])).values()
+  );
+  const printers = uniqueDevices.filter(
+    (device) =>
+      !device.deviceType || device.deviceType.toLowerCase() === "printer"
+  );
+
+  return (
+    printers.find((device) => /zd621/i.test(device.name || "")) ||
+    printers.find((device) =>
+      /zebra/i.test(
+        `${device.name || ""} ${device.manufacturer || ""} ${device.provider || ""}`
+      )
+    ) ||
+    printers[0] ||
+    null
+  );
+}
+
 async function browserPrintRequest(
   url: string,
   init?: RequestInit
@@ -136,7 +180,7 @@ async function browserPrintRequest(
   }
 }
 
-async function findDefaultPrinter(): Promise<{
+async function findConnectedPrinter(): Promise<{
   device: ZebraDevice;
   origin: string;
 }> {
@@ -144,18 +188,20 @@ async function findDefaultPrinter(): Promise<{
 
   for (const origin of BROWSER_PRINT_ORIGINS) {
     try {
-      const response = await browserPrintRequest(
-        `${origin}/default?type=printer`
+      const availableResponse = await browserPrintRequest(
+        `${origin}/available`
       );
-      const text = await response.text();
-      const device = parseDevice(text ? JSON.parse(text) : null);
+      const availableText = await availableResponse.text();
+      const connectedPrinter = chooseConnectedPrinter(
+        collectDevices(availableText ? JSON.parse(availableText) : null)
+      );
 
-      if (device) {
-        return { device, origin };
+      if (connectedPrinter) {
+        return { device: connectedPrinter, origin };
       }
 
       throw new Error(
-        "Zebra Browser Print is running, but no default Zebra printer is selected."
+        "Zebra Browser Print is running, but no connected Zebra printer was found."
       );
     } catch (error) {
       lastError = error;
@@ -164,7 +210,7 @@ async function findDefaultPrinter(): Promise<{
 
   if (
     lastError instanceof Error &&
-    lastError.message.includes("no default Zebra printer")
+    lastError.message.includes("no connected Zebra printer")
   ) {
     throw lastError;
   }
@@ -250,7 +296,7 @@ async function detectPrinterDpi(
 export async function printZplLabelsDirect(
   labels: ZebraLabel[]
 ): Promise<{ printerName: string; dpi: PrinterDpi }> {
-  const { device, origin } = await findDefaultPrinter();
+  const { device, origin } = await findConnectedPrinter();
   const dpi = await detectPrinterDpi(origin, device);
   const jobs = labels.map((label) => buildZplLabel(label, dpi));
 
