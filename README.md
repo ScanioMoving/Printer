@@ -72,11 +72,19 @@ If the printer is unplugged or moved to another USB port, the site discovers the
 currently connected Zebra again before printing instead of relying only on
 Browser Print's previously saved device ID.
 
-Windows continues to use the existing system print flow.
-On Windows, use `Windows Print` for the selected labels or
-`Windows Print All` for the complete generated batch.
-The original 4in × 2.5in Windows artwork is centered on each 4in × 3in
-physical label so the printed layout matches the established Windows labels.
+### Windows printing
+
+Use `Windows Print` for the selected labels or `Windows Print All` for the
+complete generated batch. This opens a PDF with one exact 4in × 3in page per
+label, bypassing browser HTML page scaling. If the new tab is blocked, click
+`Open Windows labels` in the status message.
+
+In the PDF print dialog, select the Zebra, set its paper size to **4in × 3in**,
+choose **Actual size / 100%**, and use **1 page per sheet**. The PDF also requests
+no automatic print scaling, but cannot override a printer driver's saved settings.
+The original 4in × 2.5in artwork is centered on the physical label with a small
+horizontal safety inset for the border. Mac direct ZPL printing is separate and
+is not affected by the Windows PDF layout.
 
 ## Deploy to Vercel (free tier)
 

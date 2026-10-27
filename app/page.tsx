@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { printZplLabelsDirect } from "./zebra";
 
 type Company = "Scanio" | "Montia" | "Sea&Air";
@@ -84,8 +84,15 @@ export default function HomePage() {
   const [pendingPrint, setPendingPrint] = useState(false);
   const [isMac, setIsMac] = useState(false);
   const [directPrinting, setDirectPrinting] = useState(false);
+  const [windowsPrinting, setWindowsPrinting] = useState(false);
+  const [windowsPdfUrl, setWindowsPdfUrl] = useState("");
+  const windowsPdfUrls = useRef<string[]>([]);
 
   const selectedSet = useMemo(() => new Set(selectedNumbers), [selectedNumbers]);
+
+  useEffect(() => () => {
+    windowsPdfUrls.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   useEffect(() => {
     setIsMac(
@@ -197,19 +204,46 @@ export default function HomePage() {
     startPrint(buildPrintableLabels(selectedNumbers));
   }
 
-  function printAllGenerated() {
+  async function printWindows(numbers: number[]) {
+    if (windowsPrinting) {
+      return;
+    }
     if (!hasTemplateValues()) {
       setStatus("Fill Project Name and Project Address before printing.");
       return;
     }
-
-    if (generatedNumbers.length === 0) {
-      setStatus("Generate labels first before printing all labels.");
+    if (numbers.length === 0) {
+      setStatus("Select or generate at least one label before printing.");
       return;
     }
 
-    setStatus("");
-    startPrint(buildPrintableLabels(generatedNumbers));
+    const labels = buildPrintableLabels(numbers);
+    // Reserve the tab during the click so loading the PDF module does not
+    // cause the browser to block it as an asynchronous popup.
+    const printTab = window.open("about:blank", "_blank");
+    if (printTab) {
+      printTab.opener = null;
+    }
+    setWindowsPrinting(true);
+    setWindowsPdfUrl("");
+    setStatus("Preparing full-size 4×3 Windows labels…");
+
+    try {
+      const { createWindowsLabelPdf } = await import("./windows-print");
+      const pdf = createWindowsLabelPdf(labels);
+      const url = URL.createObjectURL(pdf.output("blob"));
+      windowsPdfUrls.current.push(url);
+      setWindowsPdfUrl(url);
+      if (printTab && !printTab.closed) {
+        printTab.location.replace(url);
+      }
+      setStatus("Your 4×3 labels are ready. Print the PDF using Zebra paper size 4×3 inches, Actual size / 100%, and 1 page per sheet.");
+    } catch (error) {
+      printTab?.close();
+      setStatus(error instanceof Error ? error.message : "Could not prepare Windows labels. Please try again.");
+    } finally {
+      setWindowsPrinting(false);
+    }
   }
 
   async function printDirect(numbers: number[]) {
@@ -313,7 +347,7 @@ export default function HomePage() {
             )}
             {!isMac && (
               <p className="mt-3 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-950">
-                Windows print mode uses the standard print dialog with the existing 4×3 label setup.
+                Windows Print opens full-size 4×3 labels in a PDF. Print at Actual size / 100% with 4×3 paper and 1 page per sheet.
               </p>
             )}
           </header>
@@ -406,20 +440,20 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() =>
-                      isMac ? void printDirect(selectedNumbers) : printSelected()
+                      isMac ? void printDirect(selectedNumbers) : void printWindows(selectedNumbers)
                     }
                     className="h-12 rounded-xl bg-ink px-6 text-base font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-                    disabled={selectedNumbers.length === 0 || directPrinting}
+                    disabled={selectedNumbers.length === 0 || directPrinting || windowsPrinting}
                   >
                     {isMac ? "Mac: Print Selected Direct" : "Windows Print"}
                   </button>
                   <button
                     type="button"
                     onClick={() =>
-                      isMac ? void printDirect(generatedNumbers) : printAllGenerated()
+                      isMac ? void printDirect(generatedNumbers) : void printWindows(generatedNumbers)
                     }
                     className="h-12 rounded-xl border-2 border-ink bg-white px-6 text-base font-bold text-ink transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
-                    disabled={generatedNumbers.length === 0 || directPrinting}
+                    disabled={generatedNumbers.length === 0 || directPrinting || windowsPrinting}
                   >
                     {isMac ? "Mac: Print All Direct" : "Windows Print All"}
                   </button>
@@ -527,6 +561,11 @@ export default function HomePage() {
           {status && (
             <div className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-ink shadow-sm">
               {status}
+              {!isMac && windowsPdfUrl && (
+                <a className="ml-2 underline" href={windowsPdfUrl} target="_blank" rel="noreferrer">
+                  Open Windows labels
+                </a>
+              )}
             </div>
           )}
         </section>
