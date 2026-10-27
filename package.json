@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:print": "node --test tests/zebra-print.test.cjs"
   },
   "dependencies": {
     "jspdf": "^4.2.1",

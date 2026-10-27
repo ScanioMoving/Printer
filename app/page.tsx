@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { printZplLabelsDirect } from "./zebra";
+import { prepareZebraPrinter, printPreparedZplLabels, printZplLabelsDirect, type PreparedZebraPrinter } from "./zebra";
 
 type Company = "Scanio" | "Montia" | "Sea&Air";
 
@@ -85,6 +85,7 @@ export default function HomePage() {
   const [isMac, setIsMac] = useState(false);
   const [directPrinting, setDirectPrinting] = useState(false);
   const [windowsPrinting, setWindowsPrinting] = useState(false);
+  const [windowsPrintMode, setWindowsPrintMode] = useState<"auto" | "pdf">("auto");
   const [windowsPdfUrl, setWindowsPdfUrl] = useState("");
   const windowsPdfUrls = useRef<string[]>([]);
 
@@ -223,12 +224,36 @@ export default function HomePage() {
     const printTab = window.open("about:blank", "_blank");
     if (printTab) {
       printTab.opener = null;
+      printTab.document.title = "Preparing warehouse labels";
+      printTab.document.body.textContent = "Preparing your 4×3 labels. This tab closes if the Zebra can print directly, or displays your printable PDF.";
     }
     setWindowsPrinting(true);
     setWindowsPdfUrl("");
-    setStatus("Preparing full-size 4×3 Windows labels…");
+    setStatus(windowsPrintMode === "auto" ? "Detecting the connected Zebra and its resolution…" : "Preparing full-size 4×3 Windows labels…");
 
+    let sendingDirect = false;
     try {
+      let detectedPrinter: PreparedZebraPrinter | null = null;
+      let detectionError = "";
+      if (windowsPrintMode === "auto") {
+        try {
+          detectedPrinter = await prepareZebraPrinter({ requireDetectedDpi: true, timeoutMs: 3000 });
+        } catch (error) {
+          detectionError = error instanceof Error ? error.message : "Automatic printer detection is unavailable.";
+        }
+      }
+
+      if (detectedPrinter) {
+        printTab?.close();
+        setStatus(`Detected ${detectedPrinter.printerName} at ${detectedPrinter.dpi} dpi. Sending 4×3 labels directly…`);
+        // Once sending starts, do not fall back to another print method: a
+        // connection failure can happen after a label has reached the printer.
+        sendingDirect = true;
+        const { printerName, dpi } = await printPreparedZplLabels(labels, detectedPrinter);
+        setStatus(`Auto-selected ${dpi} dpi. Sent ${labels.length} 4×3 label${labels.length === 1 ? "" : "s"} directly to ${printerName}.`);
+        return;
+      }
+
       const { createWindowsLabelPdf } = await import("./windows-print");
       const pdf = createWindowsLabelPdf(labels);
       const url = URL.createObjectURL(pdf.output("blob"));
@@ -237,10 +262,11 @@ export default function HomePage() {
       if (printTab && !printTab.closed) {
         printTab.location.replace(url);
       }
-      setStatus("Your 4×3 labels are ready. Print the PDF using Zebra paper size 4×3 inches, Actual size / 100%, and 1 page per sheet.");
+      setStatus(`${detectionError ? `${detectionError} Using PDF instead. ` : ""}Your 4×3 labels are ready. Print the PDF using Zebra paper size 4×3 inches, Actual size / 100%, and 1 page per sheet.`);
     } catch (error) {
       printTab?.close();
-      setStatus(error instanceof Error ? error.message : "Could not prepare Windows labels. Please try again.");
+      const message = error instanceof Error ? error.message : "Could not prepare Windows labels.";
+      setStatus(sendingDirect ? `${message} Check the printer before retrying; some labels may already have been sent.` : message);
     } finally {
       setWindowsPrinting(false);
     }
@@ -347,7 +373,9 @@ export default function HomePage() {
             )}
             {!isMac && (
               <p className="mt-3 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-950">
-                Windows Print opens full-size 4×3 labels in a PDF. Print at Actual size / 100% with 4×3 paper and 1 page per sheet.
+                Auto detects a connected Zebra and selects 203 or 300 dpi for 4×3 labels. Requires{" "}
+                <a className="underline" href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html" target="_blank" rel="noreferrer">Zebra Browser Print for Windows</a>
+                {" "}running on this computer. If detection is unavailable, a printable PDF opens instead.
               </p>
             )}
           </header>
@@ -428,6 +456,22 @@ export default function HomePage() {
                     />
                   </label>
                 </div>
+
+                {!isMac && (
+                  <div className="flex flex-col gap-2 rounded-xl border border-slate-300 bg-slate-50 p-4">
+                    <label htmlFor="windows-print-method" className="text-sm font-bold text-slate-700">Windows print method</label>
+                    <select
+                      id="windows-print-method"
+                      className="h-12 rounded-lg border border-slate-300 bg-white px-3 text-base font-semibold"
+                      value={windowsPrintMode}
+                      onChange={(event) => setWindowsPrintMode(event.target.value as "auto" | "pdf")}
+                      disabled={windowsPrinting}
+                    >
+                      <option value="auto">Auto — detect Zebra resolution</option>
+                      <option value="pdf">PDF — use Windows print dialog</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <button

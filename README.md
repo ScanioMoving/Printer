@@ -75,9 +75,17 @@ Browser Print's previously saved device ID.
 ### Windows printing
 
 Use `Windows Print` for the selected labels or `Windows Print All` for the
-complete generated batch. This opens a PDF with one exact 4in × 3in page per
-label, bypassing browser HTML page scaling. If the new tab is blocked, click
-`Open Windows labels` in the status message.
+complete generated batch. The default **Auto** method discovers the connected
+Zebra through Zebra Browser Print, queries its physical resolution, and sends
+4in × 3in ZPL using either 203 dpi (812 × 609 dots) or 300 dpi (1200 × 900 dots).
+Install and run Browser Print for Windows and approve this website to enable
+automatic detection. Windows drivers and browser scaling are bypassed in this mode.
+
+If the printer or its DPI cannot be identified, Auto opens the exact-size PDF
+instead and explains why. It never guesses a resolution for Windows. You can
+also select **PDF** explicitly in `Windows print method`. If the new tab is
+blocked, click `Open Windows labels` in the status message. A failure after
+direct label sending begins does not trigger a PDF fallback, to avoid duplicates.
 
 In the PDF print dialog, select the Zebra, set its paper size to **4in × 3in**,
 choose **Actual size / 100%**, and use **1 page per sheet**. The PDF also requests

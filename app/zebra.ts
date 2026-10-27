@@ -26,6 +26,18 @@ const DEFAULT_PRINTER_DPI = 300;
 
 type PrinterDpi = 203 | 300;
 
+export type PreparedZebraPrinter = {
+  device: ZebraDevice;
+  origin: string;
+  dpi: PrinterDpi;
+  printerName: string;
+};
+
+type DetectionOptions = {
+  requireDetectedDpi?: boolean;
+  timeoutMs?: number;
+};
+
 function cleanZplText(value: string): string {
   return value
     .replace(/[\^~]/g, " ")
@@ -159,10 +171,11 @@ function chooseConnectedPrinter(devices: ZebraDevice[]): ZebraDevice | null {
 
 async function browserPrintRequest(
   url: string,
-  init?: RequestInit
+  init?: RequestInit,
+  timeoutMs = REQUEST_TIMEOUT_MS
 ): Promise<Response> {
   const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, {
@@ -180,7 +193,7 @@ async function browserPrintRequest(
   }
 }
 
-async function findConnectedPrinter(): Promise<{
+async function findConnectedPrinter(timeoutMs = REQUEST_TIMEOUT_MS): Promise<{
   device: ZebraDevice;
   origin: string;
 }> {
@@ -189,7 +202,7 @@ async function findConnectedPrinter(): Promise<{
   for (const origin of BROWSER_PRINT_ORIGINS) {
     try {
       const availableResponse = await browserPrintRequest(
-        `${origin}/available`
+        `${origin}/available`, undefined, timeoutMs
       );
       const availableText = await availableResponse.text();
       const connectedPrinter = chooseConnectedPrinter(
@@ -216,7 +229,7 @@ async function findConnectedPrinter(): Promise<{
   }
 
   throw new Error(
-    "Cannot reach Zebra Browser Print on this Mac. Install or open Zebra Browser Print, approve this website, and accept its local SSL certificate."
+    "Cannot reach Zebra Browser Print on this computer. Install or open Zebra Browser Print, approve this website, and accept its local SSL certificate."
   );
 }
 
@@ -242,7 +255,8 @@ function getDevicePayload(device: ZebraDevice): Record<string, string | number> 
 
 async function detectPrinterDpi(
   origin: string,
-  device: ZebraDevice
+  device: ZebraDevice,
+  options: DetectionOptions = {}
 ): Promise<PrinterDpi> {
   const devicePayload = getDevicePayload(device);
 
@@ -256,8 +270,9 @@ async function detectPrinterDpi(
         device: devicePayload,
         data: '! U1 getvar "head.resolution.in_dpi"\r\n'
       })
-    });
+    }, options.timeoutMs);
 
+    let reply = "";
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const response = await browserPrintRequest(`${origin}/read`, {
         method: "POST",
@@ -265,9 +280,9 @@ async function detectPrinterDpi(
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ device: devicePayload })
-      });
-      const text = await response.text();
-      const match = text.match(/\b(203|300)\b/);
+      }, options.timeoutMs);
+      reply += await response.text();
+      const match = reply.match(/\b(203|300)\b/);
 
       if (match?.[1] === "203" || match?.[1] === "300") {
         return Number(match[1]) as PrinterDpi;
@@ -276,8 +291,8 @@ async function detectPrinterDpi(
       await new Promise((resolve) => window.setTimeout(resolve, 100));
     }
   } catch {
-    // Some Browser Print releases do not expose two-way reads. The physical
-    // ZD621 used by this app is the 300 dpi model, so use that safe fallback.
+    // Older Browser Print versions may not return the query. A resolution in
+    // the device name can still identify the hardware without a guess.
   }
 
   const deviceDescription = [
@@ -290,14 +305,31 @@ async function detectPrinterDpi(
     return 203;
   }
 
+  if (/\b300\s*dpi\b/i.test(deviceDescription)) {
+    return 300;
+  }
+
+  if (options.requireDetectedDpi) {
+    throw new Error("Could not detect whether the connected Zebra is 203 or 300 dpi.");
+  }
+
+  // Keep the established Mac fallback for its known 300 dpi printer.
   return DEFAULT_PRINTER_DPI;
 }
 
-export async function printZplLabelsDirect(
-  labels: ZebraLabel[]
+export async function prepareZebraPrinter(
+  options: DetectionOptions = {}
+): Promise<PreparedZebraPrinter> {
+  const { device, origin } = await findConnectedPrinter(options.timeoutMs);
+  const dpi = await detectPrinterDpi(origin, device, options);
+  return { device, origin, dpi, printerName: device.name || "connected Zebra printer" };
+}
+
+export async function printPreparedZplLabels(
+  labels: ZebraLabel[],
+  printer: PreparedZebraPrinter
 ): Promise<{ printerName: string; dpi: PrinterDpi }> {
-  const { device, origin } = await findConnectedPrinter();
-  const dpi = await detectPrinterDpi(origin, device);
+  const { device, origin, dpi, printerName } = printer;
   const jobs = labels.map((label) => buildZplLabel(label, dpi));
 
   for (let index = 0; index < jobs.length; index += LABELS_PER_REQUEST) {
@@ -316,7 +348,14 @@ export async function printZplLabelsDirect(
   }
 
   return {
-    printerName: device.name || "default Zebra printer",
+    printerName,
     dpi
   };
+}
+
+export async function printZplLabelsDirect(
+  labels: ZebraLabel[]
+): Promise<{ printerName: string; dpi: PrinterDpi }> {
+  const printer = await prepareZebraPrinter();
+  return printPreparedZplLabels(labels, printer);
 }
